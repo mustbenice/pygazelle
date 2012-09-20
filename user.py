@@ -81,6 +81,43 @@ class User(object):
         self.stats['class'] = self.personal['class']
         self.passkey = self.personal['passkey']
 
+    def set_search_result_data(self, search_result_item):
+        """
+        Takes a single user result item from a 'usersearch' API call and updates user info.
+        """
+        if self.id != search_result_item['userId']:
+            raise InvalidUserException("Tried to update existing user with another user's search result data (IDs don't match).")
+
+        self.username = search_result_item['username']
+        if self.personal:
+            self.personal['donor'] = search_result_item['donor']
+            self.personal['warned'] = search_result_item['warned']
+            self.personal['enabled'] = search_result_item['enabled']
+            self.personal['class'] = search_result_item['class']
+
+#URL:
+#ajax.php?action=usersearch
+#Argument:
+#search - The search term.
+#{
+#    "status": "success",
+#    "response": {
+#        "currentPage": 1,
+#        "pages": 1,
+#        "results": [
+#                       {
+#                           "userId": 469,
+#                           "username": "dr4g0n",
+#                           "donor": true,
+#                           "warned": false,
+#                           "enabled": true,
+#                           "class": "VIP"
+#                       },
+#                   // ...
+#        ]
+#    }
+#}
+
 #URL:
 #ajax.php?action=user
 #

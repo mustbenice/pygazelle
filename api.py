@@ -99,3 +99,21 @@ class GazelleAPI(object):
             return self.logged_in_user
         else:
             return User(id, self)
+
+    def search_users(self, search_query):
+        """
+        Returns a list of users returned for the search query. You can search by name, part of name, and ID number. If
+        one of the returned users is the currently logged-in user, that user object will be pre-populated with the
+        information from an 'index' API call. Otherwise only the limited info returned by the search will be pre-pop'd.
+        You can query more information with User.update_user_data(). This is done on demand to reduce unnecessary API calls.
+        """
+        response = self.request(action='usersearch', search=search_query)
+        results = response['results']
+
+        found_users = []
+        for result in results:
+            user = User(result['userId'], self)
+            user.set_search_result_data(result)
+            found_users.append(user)
+
+        return found_users
