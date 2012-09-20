@@ -23,6 +23,8 @@ class User(object):
         self.personal = None
         self.community = None
 
+        self.parent_api.cached_users[self.id] = self # add self to cache of known User objects
+
     def update_index_data(self):
         """
         Calls 'index' API action, then updates this User objects information with it.
@@ -89,11 +91,14 @@ class User(object):
             raise InvalidUserException("Tried to update existing user with another user's search result data (IDs don't match).")
 
         self.username = search_result_item['username']
-        if self.personal:
-            self.personal['donor'] = search_result_item['donor']
-            self.personal['warned'] = search_result_item['warned']
-            self.personal['enabled'] = search_result_item['enabled']
-            self.personal['class'] = search_result_item['class']
+
+        if not self.personal:
+            self.personal = {}
+
+        self.personal['donor'] = search_result_item['donor']
+        self.personal['warned'] = search_result_item['warned']
+        self.personal['enabled'] = search_result_item['enabled']
+        self.personal['class'] = search_result_item['class']
 
     def __repr__(self):
         return "User: %s - ID: %s" % (self.username, self.id)

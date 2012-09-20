@@ -42,6 +42,9 @@ class GazelleAPI(object):
         self.passkey = None
         self.userid = None
         self.logged_in_user = None
+        self.cached_users = {}
+        self.cached_artists = {}
+        self.cached_torrents = {}
         self.site = "http://what.cd/"
         self.last_request = time.time()
         self.rate_limit = 2.0 # seconds between requests
@@ -97,6 +100,8 @@ class GazelleAPI(object):
         id = int(id)
         if id == self.userid:
             return self.logged_in_user
+        elif id in self.cached_users.keys():
+            return self.cached_users[id]
         else:
             return User(id, self)
 
@@ -112,7 +117,7 @@ class GazelleAPI(object):
 
         found_users = []
         for result in results:
-            user = User(result['userId'], self)
+            user = self.get_user(result['userId'])
             user.set_search_result_data(result)
             found_users.append(user)
 
