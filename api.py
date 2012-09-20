@@ -11,8 +11,8 @@ import HTMLParser
 from cStringIO import StringIO
 
 from user import User
-from artist import Artist
-from torrent import Torrent
+#from artist import Artist
+#from torrent import Torrent
 
 class LoginException(Exception):
     pass

@@ -12,7 +12,6 @@ class User(object):
         self.id = id
         self.parent_api = parent_api
         self.username = None
-        self.id = None
         self.authkey = None
         self.passkey = None
         self.avatar = None
@@ -38,7 +37,8 @@ class User(object):
         ONLY callable if this User object represents the currently logged in user. Throws InvalidUserException otherwise.
         """
         if self.id != index_json_response['id']:
-            raise InvalidUserException("Tried to update non-logged-in User's information from 'index' API call.")
+            raise InvalidUserException("Tried to update non-logged-in User's information from 'index' API call." +
+                                       " Should be %s, got %s" % (self.id, index_json_response['id']) )
 
         self.username = index_json_response['username']
 
@@ -46,7 +46,7 @@ class User(object):
         self.passkey = index_json_response['passkey']
         self.notifications = index_json_response['notifications']
         if self.stats:
-            self.stats = (self.stats.items() + index_json_response['userstats'].items()) # merge in new info
+            self.stats = dict(self.stats.items() + index_json_response['userstats'].items()) # merge in new info
         else:
             self.stats = index_json_response['userstats']
 
@@ -70,7 +70,7 @@ class User(object):
         self.is_friend = user_json_response['isFriend']
         self.profile_text = user_json_response['profileText']
         if self.stats:
-            self.stats = (self.stats.items() + user_json_response['stats'].items()) # merge in new info
+            self.stats = dict(self.stats.items() + user_json_response['stats'].items()) # merge in new info
         else:
             self.stats = user_json_response['stats']
         self.ranks = user_json_response['ranks']
@@ -94,6 +94,9 @@ class User(object):
             self.personal['warned'] = search_result_item['warned']
             self.personal['enabled'] = search_result_item['enabled']
             self.personal['class'] = search_result_item['class']
+
+    def __repr__(self):
+        return "User: %s - ID: %s" % (self.username, self.id)
 
 #URL:
 #ajax.php?action=usersearch
