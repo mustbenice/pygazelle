@@ -60,6 +60,7 @@ class TorrentGroup(object):
 
         self.torrents = []
         for torrent_dict in torrent_group_json_response['torrent']:
+            torrent_dict['groupId'] = self.id
             torrent = self.parent_api.get_torrent(torrent_dict['id'])
             torrent.set_torrent_group_data(torrent_dict)
             self.torrents.append(torrent)

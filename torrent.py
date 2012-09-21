@@ -64,6 +64,7 @@ class Torrent(object):
             raise InvalidTorrentException("Tried to update a Torrent's information from a 'torrentgroup' API call with a different id." +
                                           " Should be %s, got %s" % (self.id, group_torrent_json_response['id']) )
 
+        self.group = self.parent_api.get_torrent_group(group_torrent_json_response['groupId'])
         self.media = group_torrent_json_response['media']
         self.format = group_torrent_json_response['format']
         self.encoding = group_torrent_json_response['encoding']
