@@ -11,8 +11,10 @@ import HTMLParser
 from cStringIO import StringIO
 
 from user import User
-#from artist import Artist
-#from torrent import Torrent
+from artist import Artist
+from tag import Tag
+from request import Request
+from torrent import Torrent
 
 class LoginException(Exception):
     pass
@@ -44,8 +46,10 @@ class GazelleAPI(object):
         self.logged_in_user = None
         self.cached_users = {}
         self.cached_artists = {}
+        self.cached_tags = {}
         self.cached_torrents = {}
-        self.site = "http://what.cd/"
+        self.cached_requests = {}
+        self.site = "https://what.cd/"
         self.last_request = time.time()
         self.rate_limit = 2.0 # seconds between requests
         self._login()
@@ -70,30 +74,40 @@ class GazelleAPI(object):
 
     def request(self, action, **kwargs):
         """
-        Makes an AJAX request at a given action page.
+        Makes an AJAX request at a given action.
         Pass an action and relevant arguments for that action.
         """
-        while time.time() - self.last_request < self.rate_limit:
-            time.sleep(0.1)
 
-        ajaxpage = 'https://what.cd/ajax.php'
-        params = {'action': action}
-        if self.authkey:
-            params['auth'] = self.authkey
-        params.update(kwargs)
-        r = self.session.get(ajaxpage, params=params, allow_redirects=False)
-        self.last_request = time.time()
+        ajaxpage = 'ajax.php'
+        content = self.unparsed_request(ajaxpage, action, **kwargs)
         try:
-            parsed = json.loads(r.content)
+            parsed = json.loads(content)
             if parsed['status'] != 'success':
                 raise RequestException
             return parsed['response']
         except ValueError:
             raise RequestException
 
+    def unparsed_request(self, page, action, **kwargs):
+        """
+        Makes a generic HTTP request at a given page with a given action.
+        Also pass relevant arguments for that action.
+        """
+        while time.time() - self.last_request < self.rate_limit:
+            time.sleep(0.1)
+
+        url = "%s/%s" % (self.site, page)
+        params = {'action': action}
+        if self.authkey:
+            params['auth'] = self.authkey
+        params.update(kwargs)
+        r = self.session.get(url, params=params, allow_redirects=False)
+        self.last_request = time.time()
+        return r.content
+
     def get_user(self, id):
         """
-        Returns a user for the passed ID, associated with this API object. If the ID references the currently logged in
+        Returns a User for the passed ID, associated with this API object. If the ID references the currently logged in
         user, the user returned will be pre-populated with the information from an 'index' API call. Otherwise, you'll
         need to call User.update_user_data(). This is done on demand to reduce unnecessary API calls.
         """
@@ -122,3 +136,69 @@ class GazelleAPI(object):
             found_users.append(user)
 
         return found_users
+
+    def get_artist(self, id):
+        """
+        Returns an Artist for the passed ID, associated with this API object. You'll need to call Artist.update_data()
+        if the artist hasn't already been cached. This is done on demand to reduce unnecessary API calls.
+        """
+        id = int(id)
+        if id in self.cached_artists.keys():
+            return self.cached_artists[id]
+        else:
+            return Artist(id, self)
+
+    def get_tag(self, name):
+        """
+        Returns a Tag for the passed name, associated with this API object. If you know the count value for this tag,
+        pass it to update the object. There is no way to query the count directly from the API, but it can be retrieved
+        from other calls such as 'artist', however.
+        """
+        if name in self.cached_tags.keys():
+            return self.cached_tags[name]
+        else:
+            return Tag(id, self)
+
+    def get_request(self, id):
+        """
+        Returns a Request for the passed ID, associated with this API object. You'll need to call Request.update_data()
+        if the request hasn't already been cached. This is done on demand to reduce unnecessary API calls.
+        """
+        id = int(id)
+        if id in self.cached_requests.keys():
+            return self.cached_requests[id]
+        else:
+            return Request(id, self)
+
+    def get_torrent_group(self, id):
+        """
+        Returns a TorrentGroup for the passed ID, associated with this API object. You'll need to call Request.update_data()
+        if the request hasn't already been cached. This is done on demand to reduce unnecessary API calls.
+        """
+        id = int(id)
+        if id in self.cached_requests.keys():
+            return self.cached_requests[id]
+        else:
+            return Request(id, self)
+
+    def get_torrent(self, id):
+        """
+        Returns a TorrentGroup for the passed ID, associated with this API object. You'll need to call Request.update_data()
+        if the request hasn't already been cached. This is done on demand to reduce unnecessary API calls.
+        """
+        id = int(id)
+        if id in self.cached_torrents.keys():
+            return self.cached_torrents[id]
+        else:
+            return Torrent(id, self)
+
+    def generate_torrent_link(self, id):
+        url = "https://%s/torrents.php?action=download&id=%s&authkey=%s&torrent_pass=%s" %\
+              (self.site, id, self.logged_in_user.authkey, self.logged_in_user.passkey)
+        return url
+
+    def save_torrent_file(self, id, dest):
+        file_data = self.unparsed_request("torrents.php", 'download',
+            id=id, authkey=self.logged_in_user.authkey, torrent_pass=self.logged_in_user.passkey)
+        with open(dest, 'w+') as dest_file:
+            dest_file.write(file_data)
