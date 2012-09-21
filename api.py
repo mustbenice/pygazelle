@@ -179,8 +179,7 @@ class GazelleAPI(object):
 
     def get_torrent_group(self, id):
         """
-        Returns a TorrentGroup for the passed ID, associated with this API object. You'll need to call Request.update_data()
-        if the request hasn't already been cached. This is done on demand to reduce unnecessary API calls.
+        Returns a TorrentGroup for the passed ID, associated with this API object.
         """
         id = int(id)
         if id in self.cached_torrent_groups.keys():
@@ -190,8 +189,7 @@ class GazelleAPI(object):
 
     def get_torrent(self, id):
         """
-        Returns a TorrentGroup for the passed ID, associated with this API object. You'll need to call Request.update_data()
-        if the request hasn't already been cached. This is done on demand to reduce unnecessary API calls.
+        Returns a TorrentGroup for the passed ID, associated with this API object.
         """
         id = int(id)
         if id in self.cached_torrents.keys():
