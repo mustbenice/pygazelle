@@ -23,7 +23,7 @@ class Artist(object):
         self.torrent_groups = []
         self.requests = []
 
-        self.parent_api.cached_users[self.id] = self # add self to cache of known Artist objects
+        self.parent_api.cached_artists[self.id] = self # add self to cache of known Artist objects
 
     def update_data(self):
         response = self.parent_api.request(action='artist', id=self.id)

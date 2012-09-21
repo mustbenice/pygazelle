@@ -14,10 +14,12 @@ import requests
 import HTMLParser
 from cStringIO import StringIO
 
+
 from user import User
 from artist import Artist
 from tag import Tag
 from request import Request
+from torrent_group import TorrentGroup
 from torrent import Torrent
 
 class LoginException(Exception):
@@ -51,6 +53,7 @@ class GazelleAPI(object):
         self.cached_users = {}
         self.cached_artists = {}
         self.cached_tags = {}
+        self.cached_torrent_groups = {}
         self.cached_torrents = {}
         self.cached_requests = {}
         self.site = "https://what.cd/"
@@ -161,7 +164,7 @@ class GazelleAPI(object):
         if name in self.cached_tags.keys():
             return self.cached_tags[name]
         else:
-            return Tag(id, self)
+            return Tag(name, self)
 
     def get_request(self, id):
         """
@@ -180,10 +183,10 @@ class GazelleAPI(object):
         if the request hasn't already been cached. This is done on demand to reduce unnecessary API calls.
         """
         id = int(id)
-        if id in self.cached_requests.keys():
-            return self.cached_requests[id]
+        if id in self.cached_torrent_groups.keys():
+            return self.cached_torrent_groups[id]
         else:
-            return Request(id, self)
+            return TorrentGroup(id, self)
 
     def get_torrent(self, id):
         """
@@ -206,3 +209,4 @@ class GazelleAPI(object):
             id=id, authkey=self.logged_in_user.authkey, torrent_pass=self.logged_in_user.passkey)
         with open(dest, 'w+') as dest_file:
             dest_file.write(file_data)
+

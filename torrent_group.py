@@ -21,6 +21,8 @@ class TorrentGroup(object):
         self.music_info = None
         self.torrents = []
 
+        self.parent_api.cached_torrent_groups[self.id] = self
+
     def update_group_data(self):
         response = self.parent_api.request(action='torrentgroup', id=self.id)
         self.set_group_data(response)
@@ -76,8 +78,8 @@ class TorrentGroup(object):
         self.catalogue_number = artist_group_json_response['groupCatalogueNumber']
 
         self.tags = []
-        for tag_dict in artist_group_json_response['tags']:
-            tag = self.parent_api.get_tag(tag_dict['name'])
+        for tag_name in artist_group_json_response['tags']:
+            tag = self.parent_api.get_tag(tag_name)
             self.tags.append(tag)
 
         self.release_type = artist_group_json_response['releaseType']
@@ -86,6 +88,8 @@ class TorrentGroup(object):
         self.torrents = []
         for torrent_dict in artist_group_json_response['torrent']:
             torrent = self.parent_api.get_torrent(torrent_dict['id'])
-            torrent.set_artist_data(torrent_dict)
+            torrent.set_torrent_artist_data(torrent_dict)
             self.torrents.append(torrent)
 
+    def __repr__(self):
+        return "TorrentGroup: %s - ID: %s" % (self.name, self.id)

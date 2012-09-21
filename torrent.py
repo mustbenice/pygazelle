@@ -42,7 +42,7 @@ class Torrent(object):
         self.media = artist_torrent_json_response['media']
         self.format = artist_torrent_json_response['format']
         self.encoding = artist_torrent_json_response['encoding']
-        self.remaster_year = artist_torrent_json_response['remaasterYear']
+        self.remaster_year = artist_torrent_json_response['remasterYear']
         self.remastered = artist_torrent_json_response['remastered']
         self.remaster_title = artist_torrent_json_response['remasterTitle']
         self.remaster_record_label = artist_torrent_json_response['remasterRecordLabel']
@@ -92,3 +92,6 @@ class Torrent(object):
     def set_torrent_search_data(self, search_torrent_json_response):
         # TODO: handle torrent data from a torrent search
         pass
+
+    def __repr__(self):
+        return "Torrent: %s - %s - ID: %s" % (self.group.name, self.encoding, self.id)
