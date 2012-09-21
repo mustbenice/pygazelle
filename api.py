@@ -200,7 +200,7 @@ class GazelleAPI(object):
             return Torrent(id, self)
 
     def generate_torrent_link(self, id):
-        url = "https://%s/torrents.php?action=download&id=%s&authkey=%s&torrent_pass=%s" %\
+        url = "%storrents.php?action=download&id=%s&authkey=%s&torrent_pass=%s" %\
               (self.site, id, self.logged_in_user.authkey, self.logged_in_user.passkey)
         return url
 
@@ -209,4 +209,3 @@ class GazelleAPI(object):
             id=id, authkey=self.logged_in_user.authkey, torrent_pass=self.logged_in_user.passkey)
         with open(dest, 'w+') as dest_file:
             dest_file.write(file_data)
-
