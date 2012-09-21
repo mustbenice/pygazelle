@@ -62,8 +62,6 @@ class TorrentGroup(object):
             torrent.set_torrent_group_data(torrent_dict)
             self.torrents.append(torrent)
 
-
-
     def set_artist_group_data(self, artist_group_json_response):
         """
         Takes torrentgroup section from parsed JSON response from 'artist' action on api, and updates relevant information.

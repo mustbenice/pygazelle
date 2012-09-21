@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-# Makes use of / builds on the API implementation from 'whatbetter', by Zachary Denton
+#
+# PyGazelle - https://github.com/cohena/pygazelle
+# A Python implementation of the What.cd Gazelle JSON API
+#
+# Loosely based on the API implementation from 'whatbetter', by Zachary Denton
 # See https://github.com/zacharydenton/whatbetter
 
 import re
