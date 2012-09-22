@@ -95,10 +95,11 @@ class Torrent(object):
             raise InvalidTorrentException("Tried to update a Torrent's information from a 'browse'/search API call with a different id." +
                                   " Should be %s, got %s" % (self.id, search_torrent_json_response['torrentId']) )
 
+        # TODO: Add conditionals to handle torrents that aren't music
+        self.group = self.parent_api.get_torrent_group(search_torrent_json_response['groupId'])
         self.remastered = search_torrent_json_response['remastered']
         self.remaster_year = search_torrent_json_response['remasterYear']
         self.remaster_title = search_torrent_json_response['remasterTitle']
-        self.remaster_record_label = search_torrent_json_response['remasterRecordLabel']
         self.remaster_catalogue_number = search_torrent_json_response['remasterCatalogueNumber']
         self.media = search_torrent_json_response['media']
         self.format = search_torrent_json_response['format']
@@ -111,11 +112,15 @@ class Torrent(object):
         self.size = search_torrent_json_response['size']
         self.seeders = search_torrent_json_response['seeders']
         self.leechers = search_torrent_json_response['leechers']
-        self.snatched = search_torrent_json_response['snatched']
+        self.snatched = search_torrent_json_response['snatches']
         self.free_torrent = search_torrent_json_response['isFreeleech'] or search_torrent_json_response['isPersonalFreeleech']
         self.time = search_torrent_json_response['time']
 
 
 
     def __repr__(self):
-        return "Torrent: %s - %s - ID: %s" % (self.group.name, self.encoding, self.id)
+        if self.group:
+            groupname = self.group.name
+        else:
+            groupname = "Unknown Group"
+        return "Torrent: %s - %s - ID: %s" % (groupname, self.encoding, self.id)

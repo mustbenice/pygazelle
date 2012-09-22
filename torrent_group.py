@@ -114,14 +114,24 @@ class TorrentGroup(object):
         for tag_name in search_json_response['tags']:
             tag = self.parent_api.get_tag(tag_name)
             self.tags.append(tag)
-        self.has_bookmarked = search_json_response['bookmarked']
-        self.vanity_house = search_json_response['vanityHouse']
-        self.year = search_json_response['groupYear']
-        self.release_type = search_json_response['releaseType']
+        # some of the below keys aren't in things like comics...should probably watch out for this elsewhere
+        if 'bookmarked' in search_json_response.keys():
+            self.has_bookmarked = search_json_response['bookmarked']
+        if 'vanityHouse' in search_json_response.keys():
+            self.vanity_house = search_json_response['vanityHouse']
+        if 'groupYear' in search_json_response.keys():
+            self.year = search_json_response['groupYear']
+        if 'releaseType' in search_json_response.keys():
+            self.release_type = search_json_response['releaseType']
         self.time = search_json_response['groupTime']
+        if 'torrentId' in search_json_response.keys():
+            search_json_response['torrents'] = [{'torrentId': search_json_response['torrentId']}]
 
-        new_torrents = [self.parent_api.get_torrent(torrent_dict['torrentId'])
-                        for torrent_dict in search_json_response['torrents']]
+        new_torrents = []
+        for torrent_dict in search_json_response['torrents']:
+            torrent_dict['groupId'] = self.id
+            torrent = self.parent_api.get_torrent(torrent_dict['torrentId'])
+            new_torrents.append(torrent)
         # torrent information gets populated in API search call, no need to duplicate that here
         self.torrents = self.torrents + new_torrents
 
