@@ -254,6 +254,9 @@ class GazelleAPI(object):
         if len(results):
             curr_page = response['currentPage']
             pages = response['pages']
+        else:
+            curr_page = 1
+            pages = 1
 
         matching_torrents = []
         for torrent_group_dict in results:
