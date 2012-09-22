@@ -33,6 +33,8 @@ class Torrent(object):
         self.file_path = None
         self.user = None
 
+        self.parent_api.cached_torrents[self.id] = self
+
     def set_torrent_artist_data(self, artist_torrent_json_response):
         if self.id != artist_torrent_json_response['id']:
             raise InvalidTorrentException("Tried to update a Torrent's information from an 'artist' API call with a different id." +

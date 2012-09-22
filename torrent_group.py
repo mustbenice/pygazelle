@@ -39,36 +39,31 @@ class TorrentGroup(object):
         Takes parsed JSON response from 'torrentgroup' action on api, and updates relevant information.
         To avoid problems, only pass in data from an API call that used this torrentgroup's ID as an argument.
         """
-        if self.id != torrent_group_json_response['groupId']:
+        if self.id != torrent_group_json_response['group']['id']:
             raise InvalidTorrentGroupException("Tried to update a TorrentGroup's information from an 'artist' API call with a different id." +
-                                               " Should be %s, got %s" % (self.id, torrent_group_json_response['groupId']) )
+                                               " Should be %s, got %s" % (self.id, torrent_group_json_response['group']['groupId']) )
 
-        self.name = torrent_group_json_response['groupName']
-        self.year = torrent_group_json_response['groupYear']
-        self.wiki_body = torrent_group_json_response['wikiBody']
-        self.wiki_image = torrent_group_json_response['wikiImage']
-        self.record_label = torrent_group_json_response['groupRecordLabel']
-        self.catalogue_number = torrent_group_json_response['groupCatalogueNumber']
+        self.name = torrent_group_json_response['group']['name']
+        self.year = torrent_group_json_response['group']['year']
+        self.wiki_body = torrent_group_json_response['group']['wikiBody']
+        self.wiki_image = torrent_group_json_response['group']['wikiImage']
+        self.record_label = torrent_group_json_response['group']['recordLabel']
+        self.catalogue_number = torrent_group_json_response['group']['catalogueNumber']
 
-        self.tags = []
-        for tag_dict in torrent_group_json_response['tags']:
-            tag = self.parent_api.get_tag(tag_dict['name'])
-            self.tags.append(tag)
+        self.release_type = torrent_group_json_response['group']['releaseType']
+        self.category = self.parent_api.get_category(torrent_group_json_response['group']['categoryId'],
+                                                     torrent_group_json_response['group']['categoryName'])
+        self.time = torrent_group_json_response['group']['time']
+        self.vanity_house = torrent_group_json_response['group']['vanityHouse']
 
-        self.release_type = torrent_group_json_response['releaseType']
-        self.category = self.parent_api.get_category(torrent_group_json_response['categoryId'],
-                                                     torrent_group_json_response['categoryName'])
-        self.time = torrent_group_json_response['time']
-        self.has_bookmarked = torrent_group_json_response['hasBookmarked']
-
-        self.music_info = torrent_group_json_response['musicInfo']
+        self.music_info = torrent_group_json_response['group']['musicInfo']
         self.music_info['artists'] = [ self.parent_api.get_artist(artist['id'], artist['name'])
                                        for artist in self.music_info['artists'] ]
         self.music_info['with'] = [ self.parent_api.get_artist(artist['id'], artist['name'])
                                        for artist in self.music_info['with'] ]
 
         self.torrents = []
-        for torrent_dict in torrent_group_json_response['torrent']:
+        for torrent_dict in torrent_group_json_response['torrents']:
             torrent_dict['groupId'] = self.id
             torrent = self.parent_api.get_torrent(torrent_dict['id'])
             torrent.set_torrent_group_data(torrent_dict)
