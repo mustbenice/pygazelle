@@ -15,8 +15,7 @@ class TorrentGroup(object):
         self.release_type = None
         self.vanity_house = None
         self.has_bookmarked = None
-        self.category_id = None
-        self.category_name = None
+        self.category = None
         self.time = None
         self.music_info = None
         self.torrents = []
@@ -49,9 +48,8 @@ class TorrentGroup(object):
             self.tags.append(tag)
 
         self.release_type = torrent_group_json_response['releaseType']
-        # TODO: Make Category object
-        self.category_id = torrent_group_json_response['categoryId']
-        self.category_name = torrent_group_json_response['categoryName']
+        self.category = self.parent_api.get_category(torrent_group_json_response['categoryId'],
+                                                     torrent_group_json_response['categoryName'])
         self.time = torrent_group_json_response['time']
         self.has_bookmarked = torrent_group_json_response['hasBookmarked']
 

@@ -6,14 +6,9 @@
 # Loosely based on the API implementation from 'whatbetter', by Zachary Denton
 # See https://github.com/zacharydenton/whatbetter
 
-import re
-import os
 import json
 import time
 import requests
-import HTMLParser
-from cStringIO import StringIO
-
 
 from user import User
 from artist import Artist
@@ -21,6 +16,7 @@ from tag import Tag
 from request import Request
 from torrent_group import TorrentGroup
 from torrent import Torrent
+from category import Category
 
 class LoginException(Exception):
     pass
@@ -56,6 +52,7 @@ class GazelleAPI(object):
         self.cached_torrent_groups = {}
         self.cached_torrents = {}
         self.cached_requests = {}
+        self.cached_categories = {}
         self.site = "https://what.cd/"
         self.last_request = time.time()
         self.rate_limit = 2.0 # seconds between requests
@@ -196,6 +193,19 @@ class GazelleAPI(object):
             return self.cached_torrents[id]
         else:
             return Torrent(id, self)
+
+    def get_category(self, id, name=None):
+        """
+        Returns a Category for the passed ID, associated with this API object.
+        """
+        id = int(id)
+        if id in self.cached_categories.keys():
+            cat = self.cached_categories[id]
+        else:
+            cat = Category(id, self)
+        if name:
+            cat.name = name
+        return cat
 
     def generate_torrent_link(self, id):
         url = "%storrents.php?action=download&id=%s&authkey=%s&torrent_pass=%s" %\
