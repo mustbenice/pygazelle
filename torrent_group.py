@@ -1,7 +1,14 @@
+from torrent import Torrent
+
 class InvalidTorrentGroupException(Exception):
     pass
 
 class TorrentGroup(object):
+    """
+    Represents a Torrent Group (usually an album). Note that TorrentGroup.torrents may not be comprehensive if you
+    haven't called TorrentGroup.update_group_data()...it may have only been populated with filtered search results.
+    Check TorrentGroup.has_complete_torrent_list (boolean) to be sure.
+    """
     def __init__(self, id, parent_api):
         self.id = id
         self.parent_api = parent_api
@@ -19,6 +26,7 @@ class TorrentGroup(object):
         self.time = None
         self.music_info = None
         self.torrents = []
+        self.has_complete_torrent_list = False
 
         self.parent_api.cached_torrent_groups[self.id] = self
 
@@ -53,8 +61,11 @@ class TorrentGroup(object):
         self.time = torrent_group_json_response['time']
         self.has_bookmarked = torrent_group_json_response['hasBookmarked']
 
-        # TODO: Interpret music_info into objects n' stuff
         self.music_info = torrent_group_json_response['musicInfo']
+        self.music_info['artists'] = [ self.parent_api.get_artist(artist['id'], artist['name'])
+                                       for artist in self.music_info['artists'] ]
+        self.music_info['with'] = [ self.parent_api.get_artist(artist['id'], artist['name'])
+                                       for artist in self.music_info['with'] ]
 
         self.torrents = []
         for torrent_dict in torrent_group_json_response['torrent']:
@@ -62,6 +73,7 @@ class TorrentGroup(object):
             torrent = self.parent_api.get_torrent(torrent_dict['id'])
             torrent.set_torrent_group_data(torrent_dict)
             self.torrents.append(torrent)
+        self.has_complete_torrent_list = True
 
     def set_artist_group_data(self, artist_group_json_response):
         """
@@ -89,6 +101,30 @@ class TorrentGroup(object):
             torrent = self.parent_api.get_torrent(torrent_dict['id'])
             torrent.set_torrent_artist_data(torrent_dict)
             self.torrents.append(torrent)
+        self.has_complete_torrent_list = True
+
+    def set_torrent_search_data(self, search_json_response):
+        if self.id != search_json_response['groupId']:
+            raise InvalidTorrentGroupException("Tried to update a TorrentGroup's information from an 'browse'/search API call with a different id." +
+                                       " Should be %s, got %s" % (self.id, search_json_response['groupId']) )
+
+        self.name = search_json_response['groupName']
+        # purposefully ignoring search_json_response['artist']...the other data updates don't include it, would just get confusing
+        self.tags = []
+        for tag_name in search_json_response['tags']:
+            tag = self.parent_api.get_tag(tag_name)
+            self.tags.append(tag)
+        self.has_bookmarked = search_json_response['bookmarked']
+        self.vanity_house = search_json_response['vanityHouse']
+        self.year = search_json_response['groupYear']
+        self.release_type = search_json_response['releaseType']
+        self.time = search_json_response['groupTime']
+
+        new_torrents = [self.parent_api.get_torrent(torrent_dict['torrentId'])
+                        for torrent_dict in search_json_response['torrents']]
+        # torrent information gets populated in API search call, no need to duplicate that here
+        self.torrents = self.torrents + new_torrents
+
 
     def __repr__(self):
         return "TorrentGroup: %s - ID: %s" % (self.name, self.id)

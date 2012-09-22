@@ -91,8 +91,31 @@ class Torrent(object):
         self.user = self.parent_api.get_user(group_torrent_json_response['userId'])
 
     def set_torrent_search_data(self, search_torrent_json_response):
-        # TODO: handle torrent data from a torrent search
-        pass
+        if self.id != search_torrent_json_response['torrentId']:
+            raise InvalidTorrentException("Tried to update a Torrent's information from a 'browse'/search API call with a different id." +
+                                  " Should be %s, got %s" % (self.id, search_torrent_json_response['torrentId']) )
+
+        self.remastered = search_torrent_json_response['remastered']
+        self.remaster_year = search_torrent_json_response['remasterYear']
+        self.remaster_title = search_torrent_json_response['remasterTitle']
+        self.remaster_record_label = search_torrent_json_response['remasterRecordLabel']
+        self.remaster_catalogue_number = search_torrent_json_response['remasterCatalogueNumber']
+        self.media = search_torrent_json_response['media']
+        self.format = search_torrent_json_response['format']
+        self.encoding = search_torrent_json_response['encoding']
+        self.has_log = search_torrent_json_response['hasLog']
+        self.has_cue = search_torrent_json_response['hasCue']
+        self.log_score = search_torrent_json_response['logScore']
+        self.scene = search_torrent_json_response['scene']
+        self.file_count = search_torrent_json_response['fileCount']
+        self.size = search_torrent_json_response['size']
+        self.seeders = search_torrent_json_response['seeders']
+        self.leechers = search_torrent_json_response['leechers']
+        self.snatched = search_torrent_json_response['snatched']
+        self.free_torrent = search_torrent_json_response['isFreeleech'] or search_torrent_json_response['isPersonalFreeleech']
+        self.time = search_torrent_json_response['time']
+
+
 
     def __repr__(self):
         return "Torrent: %s - %s - ID: %s" % (self.group.name, self.encoding, self.id)

@@ -25,6 +25,7 @@ class RequestException(Exception):
     pass
 
 class GazelleAPI(object):
+    last_request = time.time() # share amongst all api objects
     default_headers = {
         'Connection': 'keep-alive',
         'Cache-Control': 'max-age=0',
@@ -54,7 +55,6 @@ class GazelleAPI(object):
         self.cached_requests = {}
         self.cached_categories = {}
         self.site = "https://what.cd/"
-        self.last_request = time.time()
         self.rate_limit = 2.0 # seconds between requests
         self._login()
 
@@ -141,16 +141,19 @@ class GazelleAPI(object):
 
         return found_users
 
-    def get_artist(self, id):
+    def get_artist(self, id, name=None):
         """
         Returns an Artist for the passed ID, associated with this API object. You'll need to call Artist.update_data()
         if the artist hasn't already been cached. This is done on demand to reduce unnecessary API calls.
         """
         id = int(id)
         if id in self.cached_artists.keys():
-            return self.cached_artists[id]
+            artist = self.cached_artists[id]
         else:
-            return Artist(id, self)
+            artist = Artist(id, self)
+        if name:
+            artist.name = name
+        return artist
 
     def get_tag(self, name):
         """
@@ -206,6 +209,63 @@ class GazelleAPI(object):
         if name:
             cat.name = name
         return cat
+
+    def search_torrents(self, **kwargs):
+        """
+        Searches based on the args you pass and returns torrent groups filled with torrents.
+        Pass strings unless otherwise specified.
+        Valid search args:
+            searchstr (any arbitrary string to search for)
+            page (page to display -- default: 1)
+            artistname (self explanatory)
+            groupname (torrent group name, equivalent to album)
+            recordlabel (self explanatory)
+            cataloguenumber (self explanatory)
+            year (self explanatory)
+            remastertitle (self explanatory)
+            remasteryear (self explanatory)
+            remasterrecordlabel (self explanatory)
+            remastercataloguenumber (self explanatory)
+            filelist (can search for filenames found in torrent...unsure of formatting for multiple files)
+            encoding (use constants in pygazelle.Encoding module)
+            format (use constants in pygazelle.Format module)
+            media (use constants in pygazelle.Media module)
+            releasetype (use constants in pygazelle.ReleaseType module)
+            haslog (int 1 or 0 to represent boolean, 100 for 100% only, -1 for < 100% / unscored)
+            hascue (int 1 or 0 to represent boolean)
+            scene (int 1 or 0 to represent boolean)
+            vanityhouse (int 1 or 0 to represent boolean)
+            freetorrent (int 1 or 0 to represent boolean)
+            taglist (comma separated tag names)
+            tags_type (0 for 'any' matching, 1 for 'all' matching)
+            order_by (use constants in pygazelle.order module that start with by_ in their name)
+            order_way (use way_ascending or way_descending constants in pygazelle.order)
+            filter_cat (for each category you want to search, the param name must be filter_cat[catnum] and the value 1)
+                        ex. filter_cat[1]=1 turns on Music.
+                        filter_cat[1]=1, filter_cat[2]=1 turns on music and applications. (two separate params and vals!)
+                        Category object ids return the correct int value for these. (verify?)
+
+        Returns a dict containing keys 'curr_page', 'pages', and 'results'. Results contains a matching list of Torrents
+        (they have a reference to their parent TorrentGroup).
+        """
+
+        response = self.request(action='browse', **kwargs)
+        curr_page = response['currentPage']
+        pages = response['pages']
+        results = response['results']
+
+        matching_torrents = []
+        for torrent_group_dict in results:
+            torrent_group = self.get_torrent_group(torrent_group_dict['groupId'])
+            torrent_group.set_torrent_search_data(torrent_group_dict)
+
+            for torrent_dict in torrent_group_dict['torrents']:
+                torrent_dict['groupId'] = torrent_group.id
+                torrent = self.get_torrent(torrent_dict['torrentId'])
+                torrent.set_torrent_search_data(torrent_dict)
+                matching_torrents.append(torrent)
+
+        return {'curr_page': curr_page, 'pages': pages, 'results': matching_torrents}
 
     def generate_torrent_link(self, id):
         url = "%storrents.php?action=download&id=%s&authkey=%s&torrent_pass=%s" %\
