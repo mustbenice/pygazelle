@@ -250,9 +250,10 @@ class GazelleAPI(object):
         """
 
         response = self.request(action='browse', **kwargs)
-        curr_page = response['currentPage']
-        pages = response['pages']
         results = response['results']
+        if len(results):
+            curr_page = response['currentPage']
+            pages = response['pages']
 
         matching_torrents = []
         for torrent_group_dict in results:
