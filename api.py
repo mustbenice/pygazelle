@@ -17,6 +17,7 @@ from request import Request
 from torrent_group import TorrentGroup
 from torrent import Torrent
 from category import Category
+from inbox import Mailbox
 
 class LoginException(Exception):
     pass
@@ -140,6 +141,18 @@ class GazelleAPI(object):
             found_users.append(user)
 
         return found_users
+
+    def get_inbox(self, page='1', sort='unread'):
+        """
+        Returns the inbox Mailbox for the logged in user
+        """
+        return Mailbox(self, 'inbox', page, sort)
+        
+    def get_sentbox(self, page='1', sort='unread'):
+        """
+        Returns the sentbox Mailbox for the logged in user
+        """
+        return Mailbox(self, 'sentbox', page, sort)
 
     def get_artist(self, id, name=None):
         """
