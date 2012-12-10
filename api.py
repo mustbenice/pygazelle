@@ -92,7 +92,7 @@ class GazelleAPI(object):
         except ValueError:
             raise RequestException
 
-    def unparsed_request(self, page, action, **kwargs):
+    def unparsed_request(self, sitepage, action, **kwargs):
         """
         Makes a generic HTTP request at a given page with a given action.
         Also pass relevant arguments for that action.
@@ -100,7 +100,7 @@ class GazelleAPI(object):
         while time.time() - self.last_request < self.rate_limit:
             time.sleep(0.1)
 
-        url = "%s/%s" % (self.site, page)
+        url = "%s/%s" % (self.site, sitepage)
         params = {'action': action}
         if self.authkey:
             params['auth'] = self.authkey
